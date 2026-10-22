@@ -4,6 +4,7 @@ export const STORE_KEYS = {
   eventBus: 'eventBus',
   apiKeyMap: 'apiKeyMap',
   jwtTemplate: 'jwt_template',
+  authKitAccessTokenTtlSeconds: 'authKitAccessTokenTtlSeconds',
   interactiveAuth: 'interactiveAuth',
   /** Set alongside interactiveAuth when the AuthKit login page should also ask for a password. */
   interactivePassword: 'interactivePassword',

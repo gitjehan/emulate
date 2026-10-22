@@ -1683,6 +1683,7 @@ export function authRoutes(ctx: RouteContext): void {
     const entitlements = organizationId ? ws.organizations.get(organizationId)?.entitlements : undefined;
     const flagSlugs = tokenFeatureFlags(ws, user.id, organizationId);
 
+    const authKitAccessTokenTtlSeconds = store.getData<number>(STORE_KEYS.authKitAccessTokenTtlSeconds) ?? 3600;
     const accessToken = jwt.sign(
       {
         sub: user.id,
@@ -1706,7 +1707,7 @@ export function authRoutes(ctx: RouteContext): void {
         feature_flags: flagSlugs.length ? flagSlugs : undefined,
         aud: tokenAudience,
       },
-      { claims: templateClaims, issuerClientId: tokenClientId },
+      { claims: templateClaims, issuerClientId: tokenClientId, expiresIn: authKitAccessTokenTtlSeconds },
     );
 
     // Store a real refresh token — unless this is a replay inside the grace period, which hands

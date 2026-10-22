@@ -217,6 +217,16 @@ From the CLI, `--requests-per-minute 10000` sets the same budget, and
 `WORKOS_EMULATE_REQUESTS_PER_MINUTE=10000` is the environment equivalent, for a compose file or the
 Docker image. The flag wins over the environment.
 
+For tests that need real access-token expiry, set `authKitAccessTokenTtlSeconds` on
+`createEmulator`, for example `createEmulator({ port: 0, authKitAccessTokenTtlSeconds: 60 })`.
+It must be a positive safe integer in seconds whose expiration timestamp is also safe;
+invalid values fail before the server starts. Omission preserves the 3,600-second default.
+The value is captured when the instance starts and survives `reset()`. It applies equally to
+human AuthKit sign-in and refresh tokens' **access tokens**, without changing refresh-token
+or session lifetimes, rotation, or SSO, M2M, widget and Agent Auth token lifetimes. Independent
+instances may use different values. This programmatic test option does not change clocks or
+expose a runtime setter; expiry still follows real elapsed time.
+
 ### ⚠️ Important: EventBus Reset Limitation
 
 The `reset()` method clears all data and re-seeds from the original config, but **route-level authentication events will not work after reset**. This is because Hono's router cannot be modified after it's built, so the EventBus cannot be re-registered with the collection hooks.
