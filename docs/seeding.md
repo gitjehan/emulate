@@ -133,11 +133,11 @@ sessionSettings:
   access_token_ttl_seconds: 60 # production's default is 300
 ```
 
-| Key                        | Condition        | Effect                                                                                            |
-| -------------------------- | ---------------- | ------------------------------------------------------------------------------------------------- |
-| `access_token_ttl_seconds` | omitted          | `/user_management/authenticate` mints access tokens with `exp - iat` of 300, production's default |
-| `access_token_ttl_seconds` | positive integer | every grant, first sign-in and `refresh_token` alike, mints with that lifetime                    |
-| `access_token_ttl_seconds` | anything else    | startup fails naming `sessionSettings.access_token_ttl_seconds`; `--validate-config` reports it   |
+| Key                        | Condition     | Effect                                                                                            |
+| -------------------------- | ------------- | ------------------------------------------------------------------------------------------------- |
+| `access_token_ttl_seconds` | omitted       | `/user_management/authenticate` mints access tokens with `exp - iat` of 300, production's default |
+| `access_token_ttl_seconds` | 1 to 2³¹ − 1  | every grant, first sign-in and `refresh_token` alike, mints with that lifetime                    |
+| `access_token_ttl_seconds` | anything else | startup fails naming `sessionSettings.access_token_ttl_seconds`; `--validate-config` reports it   |
 
 It is part of the seed, so `reset()` restores it with the rest of the data and each emulator
 instance has its own. Only the access token's `exp` moves: refresh tokens, their rotation and

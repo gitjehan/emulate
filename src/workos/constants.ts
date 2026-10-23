@@ -41,6 +41,13 @@ export const DEFAULT_RESOURCE_TYPE_SLUG = 'organization';
 export const DEFAULT_ACCESS_TOKEN_TTL_SECONDS = 300;
 
 /**
+ * Technical ceiling on a seeded access-token lifetime, not a production limit: `exp` has to
+ * stay a safe integer when the current time is added, and inside a 32-bit `time_t` for a
+ * verifier written in C or Go. Lifetimes beyond this are meaningless for a test anyway.
+ */
+export const MAX_ACCESS_TOKEN_TTL_SECONDS = 2 ** 31 - 1;
+
+/**
  * `resource_type_slug` is optional wherever the emulator accepts it (create
  * DTOs and seed entries), but a supplied value must be a non-empty string.
  * Resource types are not modeled, so the slug is not checked against a

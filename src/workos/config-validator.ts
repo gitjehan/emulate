@@ -3,7 +3,12 @@
  */
 import type { WorkOSSeedConfig } from './index.js';
 import { validateJwtTemplateContent } from './jwt-template.js';
-import { isValidResourceTypeSlug, SUBSCRIBABLE_EVENTS, type WorkOSEventName } from './constants.js';
+import {
+  isValidResourceTypeSlug,
+  SUBSCRIBABLE_EVENTS,
+  type WorkOSEventName,
+  MAX_ACCESS_TOKEN_TTL_SECONDS,
+} from './constants.js';
 import { AGENT_SESSION_SETTING_LIMITS } from './agent-sessions.js';
 import { normalizeEmail, type NormalizedEmail } from './helpers.js';
 import { isValidResourceUri, resourceUrisEqual } from './authkit-oauth.js';
@@ -1586,10 +1591,10 @@ export function validateSeedConfig(config: WorkOSSeedConfig): ConfigValidationRe
       errors.push({ path: 'sessionSettings', message: 'must be an object', value: settings });
     } else {
       const ttl = settings.access_token_ttl_seconds;
-      if (ttl !== undefined && (!Number.isSafeInteger(ttl) || ttl <= 0)) {
+      if (ttl !== undefined && (!Number.isInteger(ttl) || ttl <= 0 || ttl > MAX_ACCESS_TOKEN_TTL_SECONDS)) {
         errors.push({
           path: 'sessionSettings.access_token_ttl_seconds',
-          message: 'must be a positive integer of seconds',
+          message: `must be a positive integer of at most ${MAX_ACCESS_TOKEN_TTL_SECONDS} seconds`,
           value: ttl,
         });
       }

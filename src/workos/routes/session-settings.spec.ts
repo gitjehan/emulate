@@ -138,7 +138,7 @@ describe('seeded session settings', () => {
     }
   });
 
-  it.each([null, 0, -1, 0.5, Number.NaN, Number.POSITIVE_INFINITY, '60', true])(
+  it.each([null, 0, -1, 0.5, Number.NaN, Number.POSITIVE_INFINITY, 2 ** 31, Number.MAX_SAFE_INTEGER, '60', true])(
     'rejects access_token_ttl_seconds %p before the server starts',
     async (value) => {
       const config = {
@@ -161,5 +161,10 @@ describe('seeded session settings', () => {
 
   it('accepts an omitted access_token_ttl_seconds', () => {
     expect(validateSeedConfig({ ...seed(), sessionSettings: {} }).valid).toBe(true);
+  });
+
+  it('accepts a lifetime up to the 32-bit ceiling, which keeps exp a safe integer', () => {
+    const config = { ...seed(), sessionSettings: { access_token_ttl_seconds: 2 ** 31 - 1 } };
+    expect(validateSeedConfig(config).valid).toBe(true);
   });
 });
