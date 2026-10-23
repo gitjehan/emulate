@@ -41,9 +41,9 @@ export const DEFAULT_RESOURCE_TYPE_SLUG = 'organization';
 export const DEFAULT_ACCESS_TOKEN_TTL_SECONDS = 300;
 
 /**
- * Technical ceiling on a seeded access-token lifetime, not a production limit: `exp` has to
- * stay a safe integer when the current time is added, and inside a 32-bit `time_t` for a
- * verifier written in C or Go. Lifetimes beyond this are meaningless for a test anyway.
+ * Technical ceiling on a seeded access-token lifetime, not a production limit: it keeps `exp`
+ * a safe integer once the current time is added, so the signed value is exactly the requested
+ * lifetime. The 32-bit figure is otherwise arbitrary; nothing a test wants is anywhere near it.
  */
 export const MAX_ACCESS_TOKEN_TTL_SECONDS = 2 ** 31 - 1;
 
