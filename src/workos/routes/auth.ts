@@ -43,8 +43,14 @@ import {
 } from '../helpers.js';
 import { renderConfiguredJwtTemplate } from '../jwt-template.js';
 import type { EventBus } from '../event-bus.js';
-import type { WorkOSInvitation, WorkOSRefreshToken, WorkOSSSOAuthorization, WorkOSUser } from '../entities.js';
-import { STORE_KEYS, STORE_KEY_PREFIXES } from '../constants.js';
+import type {
+  WorkOSInvitation,
+  WorkOSRefreshToken,
+  WorkOSSessionSettings,
+  WorkOSSSOAuthorization,
+  WorkOSUser,
+} from '../entities.js';
+import { DEFAULT_ACCESS_TOKEN_TTL_SECONDS, STORE_KEYS, STORE_KEY_PREFIXES } from '../constants.js';
 import {
   consumeConnectAuthorizeRequest,
   getConnectAuthorizeRequest,
@@ -1683,7 +1689,12 @@ export function authRoutes(ctx: RouteContext): void {
     const entitlements = organizationId ? ws.organizations.get(organizationId)?.entitlements : undefined;
     const flagSlugs = tokenFeatureFlags(ws, user.id, organizationId);
 
-    const authKitAccessTokenTtlSeconds = store.getData<number>(STORE_KEYS.authKitAccessTokenTtlSeconds) ?? 3600;
+    // The seed's `sessionSettings` stands in for the dashboard's Sessions tab; absent one, the
+    // access token lives production's default five minutes. Read at every mint, so a refresh
+    // after reset() sees whatever the re-seed restored.
+    const accessTokenTtlSeconds =
+      store.getData<WorkOSSessionSettings>(STORE_KEYS.sessionSettings)?.access_token_ttl_seconds ??
+      DEFAULT_ACCESS_TOKEN_TTL_SECONDS;
     const accessToken = jwt.sign(
       {
         sub: user.id,
@@ -1707,7 +1718,7 @@ export function authRoutes(ctx: RouteContext): void {
         feature_flags: flagSlugs.length ? flagSlugs : undefined,
         aud: tokenAudience,
       },
-      { claims: templateClaims, issuerClientId: tokenClientId, expiresIn: authKitAccessTokenTtlSeconds },
+      { claims: templateClaims, issuerClientId: tokenClientId, expiresIn: accessTokenTtlSeconds },
     );
 
     // Store a real refresh token — unless this is a replay inside the grace period, which hands

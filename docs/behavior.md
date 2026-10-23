@@ -76,6 +76,10 @@ As with `/user_management/authorize`, `/sso/authorize` is public and signs in wh
 
 The emulator issues a new refresh token on every refresh and retires the one you presented, the way [AuthKit documents](https://workos.com/docs/authkit/session-resilience). Replaying the retired token is safe and idempotent: it answers `200` with the _same_ rotated `refresh_token` as the first exchange, a freshly minted access token for the same session, and no new session or authentication event, so concurrent refreshes (a hot reload firing several requests at once, a retry after a slow network) converge on one result instead of signing the user out. A client that fell further behind still converges: a token two rotations old resolves to the newest token in its chain. The grace period is the documented 30 seconds (production reads the length from a feature flag, so the public docs are the figure the emulator matches), measured the way production measures it, from the moment the rotated token is itself used: a client whose rotation response was lost can come back with the old token at any point in the session's life, and once the new token has been used the old one stays good for 30 seconds more, then is terminally invalid. Replaying it after that returns `{"error": "invalid_grant", "error_description": "Refresh token already exchanged."}`.
 
+### Access tokens live five minutes
+
+`/user_management/authenticate` mints access tokens whose `exp` is 300 seconds after `iat`, on every grant and every refresh: production's default "Access token duration" on the application's Sessions tab. Earlier emulator versions minted an hour. The seed's [`sessionSettings`](seeding.md#session-settings) changes the figure the way the dashboard does; nothing at runtime can, and a JWT template may not set `exp`.
+
 ### Authentication failure shapes
 
 `POST /user_management/authenticate` does not use one error shape for every failure. Which shape you get depends on the failure, not only on the grant: any malformed request is OAuth-shaped, and among credential failures three grants are OAuth-shaped and the rest plain.

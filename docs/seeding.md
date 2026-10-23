@@ -123,6 +123,29 @@ the spec's `mfa_challenge` step (a `pending_authentication_token` plus an
 `urn:workos:oauth:grant-type:mfa-totp` grant — so MFA administration and step-up login flows
 need no post-boot enrollment calls that in-memory state would lose on restart.
 
+## Session settings
+
+The dashboard's Sessions tab (Applications → your application → Sessions) sets how long an
+AuthKit access token lives. It has no API, so the seed is the way in:
+
+```yaml
+sessionSettings:
+  access_token_ttl_seconds: 60 # production's default is 300
+```
+
+| Key                        | Condition        | Effect                                                                                            |
+| -------------------------- | ---------------- | ------------------------------------------------------------------------------------------------- |
+| `access_token_ttl_seconds` | omitted          | `/user_management/authenticate` mints access tokens with `exp - iat` of 300, production's default |
+| `access_token_ttl_seconds` | positive integer | every grant, first sign-in and `refresh_token` alike, mints with that lifetime                    |
+| `access_token_ttl_seconds` | anything else    | startup fails naming `sessionSettings.access_token_ttl_seconds`; `--validate-config` reports it   |
+
+It is part of the seed, so `reset()` restores it with the rest of the data and each emulator
+instance has its own. Only the access token's `exp` moves: refresh tokens, their rotation and
+replay grace, and the lifetimes of SSO, M2M, widget and Agent Auth tokens are untouched. Expiry
+follows real time, so a test that wants a genuinely expired token seeds a short lifetime and either
+waits or moves its clock past `exp` (`setSystemTime` in `bun:test`, fake timers elsewhere); the
+refresh token still exchanges for a fresh access token on the same session.
+
 ## Organization domains
 
 A domain reaches an organization three ways, and each stores it lowercased:
@@ -1071,6 +1094,9 @@ connections:
         first_name: Regular
         last_name: Employee
         groups: [employees]
+
+sessionSettings:
+  access_token_ttl_seconds: 60 # short enough for a test to watch a token expire
 
 webhookEndpoints:
   - endpoint_url: http://localhost:5000/webhooks

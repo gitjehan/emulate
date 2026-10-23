@@ -200,10 +200,6 @@ export class JWTManager {
   sign(payload: Omit<JWTClaims, 'iss' | 'iat' | 'exp'>, options?: SignOptions): string {
     const now = Math.floor(Date.now() / 1000);
     const expiresIn = options?.expiresIn ?? 3600;
-    const exp = now + expiresIn;
-    if (!Number.isSafeInteger(exp)) {
-      throw new RangeError('JWT expiration timestamp is not a safe integer');
-    }
 
     const templateClaims: Record<string, unknown> = {};
     for (const [key, value] of Object.entries(options?.claims ?? {})) {
@@ -219,7 +215,7 @@ export class JWTManager {
       ...templateClaims,
       iss: options?.issuerClientId ? this.authKitIssuer(options.issuerClientId) : this.issuer,
       iat: now,
-      exp,
+      exp: now + expiresIn,
     };
 
     const header = { alg: 'RS256', typ: options?.typ ?? 'JWT', kid: this.kid };

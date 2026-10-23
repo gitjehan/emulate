@@ -1578,6 +1578,24 @@ export function validateSeedConfig(config: WorkOSSeedConfig): ConfigValidationRe
     }
   }
 
+  // The Sessions tab has no API, so a bad lifetime can only arrive by seed; checking it here
+  // means `--validate-config` reports it rather than the first sign-in minting with it.
+  if (config.sessionSettings !== undefined) {
+    const settings = config.sessionSettings;
+    if (typeof settings !== 'object' || settings === null || Array.isArray(settings)) {
+      errors.push({ path: 'sessionSettings', message: 'must be an object', value: settings });
+    } else {
+      const ttl = settings.access_token_ttl_seconds;
+      if (ttl !== undefined && (!Number.isSafeInteger(ttl) || ttl <= 0)) {
+        errors.push({
+          path: 'sessionSettings.access_token_ttl_seconds',
+          message: 'must be a positive integer of seconds',
+          value: ttl,
+        });
+      }
+    }
+  }
+
   return {
     valid: errors.length === 0,
     errors,

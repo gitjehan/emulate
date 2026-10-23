@@ -4,7 +4,8 @@ export const STORE_KEYS = {
   eventBus: 'eventBus',
   apiKeyMap: 'apiKeyMap',
   jwtTemplate: 'jwt_template',
-  authKitAccessTokenTtlSeconds: 'authKitAccessTokenTtlSeconds',
+  /** The seed's `sessionSettings`: production's Sessions tab, which has no API of its own. */
+  sessionSettings: 'session_settings',
   interactiveAuth: 'interactiveAuth',
   /** Set alongside interactiveAuth when the AuthKit login page should also ask for a password. */
   interactivePassword: 'interactivePassword',
@@ -31,6 +32,13 @@ export const STORE_KEY_PREFIXES = {
  * spec-required `resource_type_slug`.
  */
 export const DEFAULT_RESOURCE_TYPE_SLUG = 'organization';
+
+/**
+ * Lifetime of the access token `/user_management/authenticate` mints when the seed's
+ * `sessionSettings` sets none: five minutes, the default "Access token duration" on an
+ * application's Sessions tab in the dashboard. The refresh token carries the session past it.
+ */
+export const DEFAULT_ACCESS_TOKEN_TTL_SECONDS = 300;
 
 /**
  * `resource_type_slug` is optional wherever the emulator accepts it (create

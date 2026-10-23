@@ -71,7 +71,9 @@ fails the boot rather than the first sign-in. `--validate-config` checks it too.
 
 - **Reserved claims.** A template may not set `iss`, `sub`, `exp`, `iat`, `nbf`, or `jti`. Note that
   `aud`, `sid`, `org_id`, `role`, `roles`, and `permissions` are _not_ reserved: a template may
-  deliberately override those, and the rendered value wins over what the emulator resolved.
+  deliberately override those, and the rendered value wins over what the emulator resolved. The
+  access token's lifetime is the seed's [`sessionSettings`](seeding.md#session-settings), not a
+  template claim.
 - **Unknown variables.** An unrecognized root (`{{ usr.email }}`) is a typo and is rejected. A path
   _below_ a known root that the emulator does not model resolves to null instead — including
   `organization.allow_profiles_outside_organization` and

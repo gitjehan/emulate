@@ -13,12 +13,6 @@ describe('JWTManager', () => {
     setSystemTime();
   });
 
-  it('rejects unsafe expiration arithmetic before signing', () => {
-    expect(() => jwt.sign({ sub: 'user_01ABC', aud: 'client_01XYZ' }, { expiresIn: Number.MAX_SAFE_INTEGER })).toThrow(
-      'JWT expiration timestamp is not a safe integer',
-    );
-  });
-
   it('signs a token and verifies it', () => {
     const token = jwt.sign({
       sub: 'user_01ABC',

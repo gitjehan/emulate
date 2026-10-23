@@ -110,6 +110,7 @@ import type {
   ConnectedAccountState,
   WorkOSApiKeyOwner,
   WorkOSJwtTemplate,
+  WorkOSSessionSettings,
 } from './entities.js';
 
 export { getWorkOSStore, type WorkOSStore } from './store.js';
@@ -479,6 +480,15 @@ export interface WorkOSSeedAgentBlueprint {
   };
 }
 
+export interface WorkOSSeedSessionSettings {
+  /**
+   * Lifetime in seconds of the access token every `/user_management/authenticate` grant mints,
+   * first sign-in and refresh alike. Production's "Access token duration" on the application's
+   * Sessions tab, whose default of 300 applies when this is omitted.
+   */
+  access_token_ttl_seconds?: number;
+}
+
 export interface WorkOSSeedJwtTemplate {
   /**
    * Template string rendering to a JSON object of claims, e.g.
@@ -517,6 +527,12 @@ export interface WorkOSSeedConfig {
    * emulator mints. Seeding it means a test suite gets custom claims without a setup call.
    */
   jwtTemplate?: WorkOSSeedJwtTemplate;
+  /**
+   * The environment's AuthKit session settings: production's Sessions tab, which has no API, so
+   * the seed is the only way in. A short `access_token_ttl_seconds` lets a test reach a real
+   * token expiry without waiting out the five-minute default.
+   */
+  sessionSettings?: WorkOSSeedSessionSettings;
   /**
    * Feature flags and their targets. Production has no create-flag endpoint — flags are
    * made in the dashboard — so seeding is the only way to get one into the emulator.
@@ -1181,6 +1197,12 @@ export function seedFromConfig(store: Store, _baseUrl: string, config: WorkOSSee
       created_at: now,
       updated_at: now,
     } satisfies WorkOSJwtTemplate);
+  }
+
+  if (config.sessionSettings?.access_token_ttl_seconds !== undefined) {
+    store.setData(STORE_KEYS.sessionSettings, {
+      access_token_ttl_seconds: config.sessionSettings.access_token_ttl_seconds,
+    } satisfies WorkOSSessionSettings);
   }
 }
 

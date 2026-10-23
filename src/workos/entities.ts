@@ -12,6 +12,15 @@ export interface WorkOSJwtTemplate {
   updated_at: string;
 }
 
+/**
+ * The environment's AuthKit session settings, from the seed's `sessionSettings`. Environment-
+ * scoped like the JWT template, so it lives in store data; absent, the defaults in constants.ts.
+ */
+export interface WorkOSSessionSettings {
+  /** Lifetime in seconds of every access token `/user_management/authenticate` mints. */
+  access_token_ttl_seconds: number;
+}
+
 export interface WorkOSOrganization extends Entity {
   object: 'organization';
   name: string;

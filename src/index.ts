@@ -40,6 +40,7 @@ export interface EmulatorSeedConfig {
   connectApplications?: WorkOSSeedConfig['connectApplications'];
   resourceIndicators?: WorkOSSeedConfig['resourceIndicators'];
   jwtTemplate?: WorkOSSeedConfig['jwtTemplate'];
+  sessionSettings?: WorkOSSeedConfig['sessionSettings'];
   featureFlags?: WorkOSSeedConfig['featureFlags'];
   directories?: WorkOSSeedConfig['directories'];
   agentBlueprints?: WorkOSSeedConfig['agentBlueprints'];
@@ -50,8 +51,6 @@ export interface EmulatorOptions {
   port?: number;
   /** Maximum requests per API key in each 60-second window; defaults to 1,000. */
   requestsPerMinute?: number;
-  /** Human AuthKit access-token lifetime in seconds; defaults to 3,600. Fixed for this instance. */
-  authKitAccessTokenTtlSeconds?: number;
   /**
    * Network interface to bind to. Defaults to `localhost`, which keeps the
    * emulator's unauthenticated endpoints reachable only from the local
@@ -123,17 +122,6 @@ export interface Emulator {
 }
 
 export async function createEmulator(options: EmulatorOptions = {}): Promise<Emulator> {
-  const authKitAccessTokenTtlSeconds =
-    options.authKitAccessTokenTtlSeconds === undefined ? 3600 : options.authKitAccessTokenTtlSeconds;
-  if (
-    !Number.isSafeInteger(authKitAccessTokenTtlSeconds) ||
-    authKitAccessTokenTtlSeconds <= 0 ||
-    !Number.isSafeInteger(Math.floor(Date.now() / 1000) + authKitAccessTokenTtlSeconds)
-  ) {
-    throw new RangeError(
-      'authKitAccessTokenTtlSeconds must be a positive safe integer with a safe expiration timestamp',
-    );
-  }
   const port = options.port ?? 4100;
   // Falsy (including an empty string) falls back to the loopback default rather than
   // binding all interfaces, so a stray `--host=` can't silently re-expose the server.
@@ -170,7 +158,6 @@ export async function createEmulator(options: EmulatorOptions = {}): Promise<Emu
   // from reset() as well. Kept in one place because the failure is silent otherwise: an option
   // set here and not restored there simply stops taking effect after the first reset.
   const applyOptionData = () => {
-    store.setData(STORE_KEYS.authKitAccessTokenTtlSeconds, authKitAccessTokenTtlSeconds);
     if (options.interactiveAuth) {
       store.setData(STORE_KEYS.interactiveAuth, true);
       if (typeof options.interactiveAuth === 'object' && options.interactiveAuth.password) {
